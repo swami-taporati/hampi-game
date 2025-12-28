@@ -91,20 +91,11 @@ function addItem(item) {
 
 function renderScene(sceneKey) {
     const scene = story[sceneKey];
-    if (scene.onEnter) scene.onEnter();
-
-    sceneText.innerText = scene.text;
-    choiceContainer.innerHTML = '';
-
-    scene.choices.forEach(choice => {
-        if (choice.condition && !choice.condition()) return;
-        
-        const btn = document.createElement('button');
-        btn.innerText = choice.text;
-        btn.className = 'choice-btn';
-        btn.onclick = () => renderScene(choice.nextScene);
-        choiceContainer.appendChild(btn);
-    });
+    // Change image
+    if (scene.image) {
+        document.getElementById('scene-image').src = scene.image;
+    }
+    // ... rest of the function
 }
 
 renderScene('start');
