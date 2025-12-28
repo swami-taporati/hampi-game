@@ -6,79 +6,52 @@ let inventory = [];
 
 const story = {
     start: {
-        text: "You stand at the Hemakuta Hill entrance. To reach the King, you must prove you are not a spy by identifying the landmarks of the capital.",
+        text: "Welcome to Vijayanagara, the City of Victory. Use the Map above to explore. You need a Royal Token or Gold to enter the Palace.",
+        choices: []
+    },
+    temple_entry: {
+        text: "You are at the Virupaksha Temple. A priest blocks the inner sanctum. 'Tell me, traveler: Which hill is famous for its 7th-century rock-cut shrines nearby?'",
         choices: [
-            { text: "Begin the Knowledge Trial", nextScene: 'id_puzzle_1' },
-            { text: "Head to the River", nextScene: 'river_crossing' }
+            { text: "Matanga Hill", nextScene: 'puzzle_fail' },
+            { text: "Hemakuta Hill", nextScene: 'temple_success' }
         ]
     },
-
-    // --- IDENTIFICATION PUZZLE ---
-    id_puzzle_1: {
-        text: "A guard points to a structure in the distance. 'That building has a tiered, pyramid-like roof and looks like a blooming flower. What is its name?'",
-        choices: [
-            { text: "The Queen's Bath", nextScene: 'puzzle_fail' },
-            { text: "The Lotus Mahal", nextScene: 'id_puzzle_2' },
-            { text: "The Elephant Stables", nextScene: 'puzzle_fail' }
-        ]
+    temple_success: {
+        text: "Correct. The priest hands you a blessed 'Temple Token'. You may now use this to enter the Royal Enclosure.",
+        onEnter: () => addItem("Temple Token"),
+        choices: []
     },
-    id_puzzle_2: {
-        text: "Correct. Now, look at the great chariot. 'It is made of stone, yet it looks ready to roll. Who is the deity housed in the temple behind it?'",
-        choices: [
-            { text: "Lord Virupaksha", nextScene: 'puzzle_fail' },
-            { text: "Lord Vitthala", nextScene: 'id_puzzle_win' },
-            { text: "Ganesha", nextScene: 'puzzle_fail' }
-        ]
+    bazaar: {
+        text: "The Hampi Bazaar stretches for a kilometer. You see the 'Monolithic Bull' statue. A merchant offers to trade a map for work, but you are looking for the Royal Gate.",
+        choices: [{ text: "Look around", nextScene: 'start' }]
     },
-    id_puzzle_win: {
-        text: "The guard is impressed. 'You know our city well.' He hands you a 'Carved Token'.",
-        onEnter: () => { addItem("Carved Token"); },
-        choices: [
-            { text: "Proceed to the Royal Enclosure", nextScene: 'royal_gate' }
-        ]
-    },
-
-    // --- INTERACTIVE RIDDLE ---
     river_crossing: {
-        text: "The Tungabhadra river is high. A boatman in a round coracle (basket boat) says: 'I only ferry those who can answer my riddle: I have pillars that sing, but no voice; I have a chariot of stone, but no horses. Where am I?'",
+        text: "The Tungabhadra River flows rapidly. To cross, you must identify this animal carved everywhere in Hampi that symbolizes power.",
         choices: [
-            { text: "Say 'The Vittala Temple'", nextScene: 'river_success' },
-            { text: "Say 'The Hampi Bazaar'", nextScene: 'puzzle_fail' }
+            { text: "The Elephant", nextScene: 'river_success' },
+            { text: "The Tiger", nextScene: 'puzzle_fail' }
         ]
     },
     river_success: {
-        text: "The boatman smiles and paddles you across. You find a 'Bag of Gold' dropped by a traveler in the boat!",
-        onEnter: () => { addItem("Bag of Gold"); },
-        choices: [
-            { text: "Head to the Royal Enclosure", nextScene: 'royal_gate' }
-        ]
+        text: "The boatman nods. 'The Gajashala (Elephant Stables) is proof of our strength.' He gives you 'Ancient Gold' found in the silt.",
+        onEnter: () => addItem("Ancient Gold"),
+        choices: []
     },
-
-    // --- FINAL GATE ---
     royal_gate: {
-        text: "You reach the King's court. To enter the Mahanavami Dibba festival, you must offer something of value.",
+        text: "You stand before the King's Gate. 'Show your credentials!'",
         choices: [
-            { text: "Offer the Carved Token", nextScene: 'win_scholar', condition: () => inventory.includes("Carved Token") },
-            { text: "Offer the Bag of Gold", nextScene: 'win_merchant', condition: () => inventory.includes("Bag of Gold") },
-            { text: "I have nothing", nextScene: 'caught' }
+            { text: "Show Temple Token", nextScene: 'win', condition: () => inventory.includes("Temple Token") },
+            { text: "Offer Ancient Gold", nextScene: 'win', condition: () => inventory.includes("Ancient Gold") },
+            { text: "I have nothing", nextScene: 'start' }
         ]
     },
-
     puzzle_fail: {
-        text: "The locals look at you with suspicion. 'You are clearly a stranger.' You are asked to leave the city gates.",
-        choices: [{ text: "Try again", nextScene: 'start' }]
+        text: "Incorrect! The locals look at you with confusion. Try exploring another area.",
+        choices: []
     },
-    win_scholar: {
-        text: "The King welcomes you as a Scholar of the Empire. You are given a seat of honor at the festival! YOU WIN (Scholar Ending).",
-        choices: [{ text: "Play Again", nextScene: 'start' }]
-    },
-    win_merchant: {
-        text: "The King accepts your tribute. You are allowed to trade in the inner city. YOU WIN (Merchant Ending).",
-        choices: [{ text: "Play Again", nextScene: 'start' }]
-    },
-    caught: {
-        text: "The guards turn you away. 'No entry for those without a gift or knowledge.'",
-        choices: [{ text: "Restart", nextScene: 'start' }]
+    win: {
+        text: "The gates swing open! You have gained entry to the heart of the Empire. The Mahanavami festival begins! YOU WIN.",
+        choices: [{ text: "Restart Adventure", nextScene: 'start' }]
     }
 };
 
@@ -91,11 +64,27 @@ function addItem(item) {
 
 function renderScene(sceneKey) {
     const scene = story[sceneKey];
-    // Change image
-    if (scene.image) {
-        document.getElementById('scene-image').src = scene.image;
+    if (scene.onEnter) scene.onEnter();
+
+    sceneText.innerText = scene.text;
+    choiceContainer.innerHTML = '';
+
+    if (scene.choices.length > 0) {
+        scene.choices.forEach(choice => {
+            if (choice.condition && !choice.condition()) return;
+            const btn = document.createElement('button');
+            btn.innerText = choice.text;
+            btn.className = 'choice-btn';
+            btn.onclick = () => renderScene(choice.nextScene);
+            choiceContainer.appendChild(btn);
+        });
+    } else {
+        const backBtn = document.createElement('button');
+        backBtn.innerText = "Continue Exploring...";
+        backBtn.className = 'choice-btn';
+        backBtn.onclick = () => renderScene('start');
+        choiceContainer.appendChild(backBtn);
     }
-    // ... rest of the function
 }
 
 renderScene('start');
