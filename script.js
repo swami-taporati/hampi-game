@@ -6,71 +6,78 @@ let inventory = [];
 
 const story = {
     start: {
-        text: "The sun rises over Matanga Hill. To your left is the bustling Bazaar; to your right, the path leads to the sacred Vittala Temple.",
+        text: "You stand at the Hemakuta Hill entrance. To reach the King, you must prove you are not a spy by identifying the landmarks of the capital.",
         choices: [
-            { text: "Go to Hampi Bazaar", nextScene: 'bazaar' },
-            { text: "Go to Vittala Temple", nextScene: 'vittala_complex' }
+            { text: "Begin the Knowledge Trial", nextScene: 'id_puzzle_1' },
+            { text: "Head to the River", nextScene: 'river_crossing' }
         ]
     },
-    bazaar: {
-        text: "The Bazaar is filled with merchants from Portugal and Persia. A spice trader offers you work.",
+
+    // --- IDENTIFICATION PUZZLE ---
+    id_puzzle_1: {
+        text: "A guard points to a structure in the distance. 'That building has a tiered, pyramid-like roof and looks like a blooming flower. What is its name?'",
         choices: [
-            { text: "Accept delivery task", nextScene: 'merchant_work' },
-            { text: "Return to Main Path", nextScene: 'start' }
+            { text: "The Queen's Bath", nextScene: 'puzzle_fail' },
+            { text: "The Lotus Mahal", nextScene: 'id_puzzle_2' },
+            { text: "The Elephant Stables", nextScene: 'puzzle_fail' }
         ]
     },
-    vittala_complex: {
-        text: "You stand before the magnificent Stone Chariot. A master architect is tapping the pillars of the Maha Mantapa. He looks frustrated. 'The harmony is off,' he mutters.",
+    id_puzzle_2: {
+        text: "Correct. Now, look at the great chariot. 'It is made of stone, yet it looks ready to roll. Who is the deity housed in the temple behind it?'",
         choices: [
-            { text: "Offer to help with the pillars", nextScene: 'pillar_puzzle' },
-            { text: "Back to Main Path", nextScene: 'start' }
+            { text: "Lord Virupaksha", nextScene: 'puzzle_fail' },
+            { text: "Lord Vitthala", nextScene: 'id_puzzle_win' },
+            { text: "Ganesha", nextScene: 'puzzle_fail' }
         ]
     },
-    pillar_puzzle: {
-        text: "The architect says: 'The Sa-Re-Ga-Ma pillars must be struck in the correct order to resonate with the gods.'",
+    id_puzzle_win: {
+        text: "The guard is impressed. 'You know our city well.' He hands you a 'Carved Token'.",
+        onEnter: () => { addItem("Carved Token"); },
         choices: [
-            { text: "Strike: Sa - Ga - Re - Ma", nextScene: 'puzzle_fail' },
-            { text: "Strike: Sa - Re - Ga - Ma", nextScene: 'puzzle_success' }
+            { text: "Proceed to the Royal Enclosure", nextScene: 'royal_gate' }
         ]
     },
-    puzzle_success: {
-        text: "A pure, melodic tone rings out through the temple. The architect beams! 'You have the ear of a musician!' He gives you a Royal Temple Pass.",
-        onEnter: () => { addItem("Temple Pass"); },
+
+    // --- INTERACTIVE RIDDLE ---
+    river_crossing: {
+        text: "The Tungabhadra river is high. A boatman in a round coracle (basket boat) says: 'I only ferry those who can answer my riddle: I have pillars that sing, but no voice; I have a chariot of stone, but no horses. Where am I?'",
+        choices: [
+            { text: "Say 'The Vittala Temple'", nextScene: 'river_success' },
+            { text: "Say 'The Hampi Bazaar'", nextScene: 'puzzle_fail' }
+        ]
+    },
+    river_success: {
+        text: "The boatman smiles and paddles you across. You find a 'Bag of Gold' dropped by a traveler in the boat!",
+        onEnter: () => { addItem("Bag of Gold"); },
         choices: [
             { text: "Head to the Royal Enclosure", nextScene: 'royal_gate' }
         ]
     },
-    puzzle_fail: {
-        text: "The pillars emit a dull, clashing thud. The architect sighs. 'No, that is not the rhythm of the empire.'",
-        choices: [
-            { text: "Try again", nextScene: 'pillar_puzzle' }
-        ]
-    },
-    merchant_work: {
-        text: "You now carry a 'Bag of Spices'. This is heavy, but it might get you past the guards.",
-        onEnter: () => { addItem("Spices"); },
-        choices: [
-            { text: "Head to the Royal Enclosure", nextScene: 'royal_gate' }
-        ]
-    },
+
+    // --- FINAL GATE ---
     royal_gate: {
-        text: "The Royal Gate is guarded by soldiers in silk tunics. 'Identify yourself,' they demand.",
+        text: "You reach the King's court. To enter the Mahanavami Dibba festival, you must offer something of value.",
         choices: [
-            { text: "Show Temple Pass", nextScene: 'win_temple', condition: () => inventory.includes("Temple Pass") },
-            { text: "Show Spices", nextScene: 'win_merchant', condition: () => inventory.includes("Spices") },
-            { text: "I have nothing to show", nextScene: 'caught' }
+            { text: "Offer the Carved Token", nextScene: 'win_scholar', condition: () => inventory.includes("Carved Token") },
+            { text: "Offer the Bag of Gold", nextScene: 'win_merchant', condition: () => inventory.includes("Bag of Gold") },
+            { text: "I have nothing", nextScene: 'caught' }
         ]
     },
-    win_temple: {
-        text: "The guards bow. 'A friend of the Architect is a friend of the King.' You are invited to sit on the Mahanavami Dibba platform to watch the sunset. YOU WIN (High Honor).",
+
+    puzzle_fail: {
+        text: "The locals look at you with suspicion. 'You are clearly a stranger.' You are asked to leave the city gates.",
+        choices: [{ text: "Try again", nextScene: 'start' }]
+    },
+    win_scholar: {
+        text: "The King welcomes you as a Scholar of the Empire. You are given a seat of honor at the festival! YOU WIN (Scholar Ending).",
         choices: [{ text: "Play Again", nextScene: 'start' }]
     },
     win_merchant: {
-        text: "The guard takes the spices. 'The kitchens were waiting for these. Get inside.' You enter the city as a humble worker. YOU WIN (Commoner).",
+        text: "The King accepts your tribute. You are allowed to trade in the inner city. YOU WIN (Merchant Ending).",
         choices: [{ text: "Play Again", nextScene: 'start' }]
     },
     caught: {
-        text: "Without credentials, the guards turn you away. The sun sets on your journey. Try again tomorrow!",
+        text: "The guards turn you away. 'No entry for those without a gift or knowledge.'",
         choices: [{ text: "Restart", nextScene: 'start' }]
     }
 };
@@ -100,5 +107,4 @@ function renderScene(sceneKey) {
     });
 }
 
-// Start the game
 renderScene('start');
